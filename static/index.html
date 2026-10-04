@@ -1,0 +1,50 @@
+<div class="space-y-3">
+    <!-- Geolocation Button -->
+    <button onclick="getLocation()" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded-lg font-semibold transition">
+        Use My Location
+    </button>
+
+    <div class="text-center text-slate-400 text-sm">or enter manually</div>
+
+    <!-- Manual Textboxes -->
+    <input type="number" id="lat" placeholder="Latitude (e.g., 51.5074)" step="any" class="w-full p-2 rounded bg-slate-750 text-white border border-slate-600">
+    <input type="number" id="lon" placeholder="Longitude (e.g., -0.1278)" step="any" class="w-full p-2 rounded bg-slate-750 text-white border border-slate-600">
+    
+    <!-- Trigger Action -->
+    <button onclick="sendCoordinates()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg font-semibold transition">
+        Calculate Blinds Action
+    </button>
+</div>
+
+<script>
+    // 1. Browser Geolocation Feature
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                document.getElementById('lat').value = position.coords.latitude;
+                document.getElementById('lon').value = position.coords.longitude;
+            }, err => alert("Location permission denied or unavailable. Please enter manually."));
+        } else {
+            alert("Geolocation is not supported by your browser.");
+        }
+    }
+
+    // 2. Sends either auto-filled or manually typed coordinates to FastAPI
+    async function sendCoordinates() {
+        const lat = document.getElementById('lat').value;
+        const lon = document.getElementById('lon').value;
+        
+        if (!lat || !lon) {
+            return alert("Please provide both latitude and longitude.");
+        }
+
+        const response = await fetch('/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ latitude: parseFloat(lat), longitude: parseFloat(lon) })
+        });
+        
+        const data = await response.json();
+        console.log("Backend response:", data);
+    }
+</script>
