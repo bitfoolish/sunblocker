@@ -16,15 +16,23 @@ class SolarWindow:
     def is_sun_facing_window(self, time: pd.Timestamp, fov: float = 90.0) -> bool:
         solpos = self.location.get_solarposition(time)
         sun_azimuth = solpos['azimuth'].iloc[0]
-        sun_elev = solpos['elevation'].iloc[0]
 
-        if sun_elev <= 0:
+        if not self.is_sun_shining(time):
             return False
 
         angle_diff = abs(sun_azimuth - self.orientation)
         is_within_fov = angle_diff <= (fov / 2)
         return is_within_fov
-        
+
+    ## Is sun elevated enough to glare
+    def is_elevated_enough(self, time: pd.Timestamp) -> bool:
+        solpos = self.location.get_solarposition(time)
+        elev = solpos['elevation'].iloc[0]
+        is_within_elev = 5 <= elev <= 45
+        return is_within_elev
+    
+    def is_geometric_glare(self, time: pd.Timestamp, fov: float = 90.0) -> bool:
+        return self.is_sun_facing_window(time, fov) and self.is_elevated_enough(time)
 
 # site = Location(latitude=53.360001, longitude=-6.325000, tz="Europe/Dublin")
 
