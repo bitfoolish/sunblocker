@@ -27,21 +27,13 @@ class SolarWindow:
         return is_within_fov
 
     ## Is sun elevated enough to glare
-    def is_elevated_enough(self, time: pd.Timestamp) -> bool:
+    def is_elevated_enough(self, time: pd.Timestamp, min_elev: float = 5.0, max_elev: float = 45.0) -> bool:
         sun_elev, _ = self._get_solar_data(time)
-        is_within_elev = 5 <= sun_elev <= 45
+        is_within_elev = min_elev <= sun_elev <= max_elev
         return is_within_elev
     
     def is_geometric_glare(self, time: pd.Timestamp, fov: float = 90.0, min_elev: float = 5.0, max_elev: float = 45.0) -> bool:
-        elev, sun_azimuth = self._get_solar_data(time)
-
-        if not (min_elev <= elev <= max_elev):
-            return False
-
-        angle_diff = abs((sun_azimuth - self.orientation + 180) % 360 - 180)
-        return angle_diff <= (fov / 2)
-
-        # return self.is_sun_facing_window(time, fov) and self.is_elevated_enough(time)
+        return self.is_sun_facing_window(time, fov) and self.is_elevated_enough(time, min_elev, max_elev)
 
 # site = Location(latitude=53.360001, longitude=-6.325000, tz="Europe/Dublin")
 
@@ -55,6 +47,7 @@ class SolarWindow:
 
 # Instantiate South-Facing Window in Dublin (180° orientation)
 south_window = SolarWindow(53.360001, -6.325000, 180, tz="Europe/Dublin")
+current_time = pd.Timestamp.now(tz="Europe/Dublin")
 
 ''' -----------------------------------------------------------------------------
 # Test Cases 
